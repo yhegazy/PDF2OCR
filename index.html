@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>PDF → Multi-page PNG</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+  <script src="convertPdfToPng.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF to PNG Converter</h1>
+  <input id="pdfInput" type="file" accept="application/pdf" aria-label="Select PDF file to convert" />
+  <div id="status">Select a PDF file to convert</div>
+  <div id="downloads"></div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const downloadsEl = document.getElementById('downloads');
+
+    document.getElementById('pdfInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      statusEl.textContent = 'Reading file...';
+      downloadsEl.innerHTML = ''; // Clear previous downloads
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        statusEl.textContent = 'Converting PDF pages to PNG...';
+
+        const pngBlobs = await convertPdfToPng(arrayBuffer, { scale: 1.5 });
+
+        statusEl.textContent = `Conversion complete — ${pngBlobs.length} page(s) converted.`;
+
+        pngBlobs.forEach((blob, i) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${file.name.replace(/\.pdf$/i, '')}_page_${i + 1}.png`;
+          a.textContent = `Download page ${i + 1} PNG`;
+          a.style.display = 'block';
+          a.style.marginTop = '0.5rem';
+
+          // Append to downloads div
+          downloadsEl.appendChild(a);
+        });
+
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + (err.message || err);
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
