@@ -12,7 +12,7 @@ export function App() {
     if (!file) return;
 
     setStatus("Reading file...");
-    setDownloadLinks([]); // Clear previous downloads
+    setDownloadLinks([]);
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -22,7 +22,7 @@ export function App() {
 
       setStatus(`Conversion complete — ${pngBlobs.length} page(s) converted.`);
 
-      const newLinks = pngBlobs.map((blob:any, i:number) => {
+      const newLinks = pngBlobs.map((blob, i) => {
         const url = URL.createObjectURL(blob);
         const name = `${file.name.replace(/\.pdf$/i, '')}_page_${i + 1}.png`;
         return { url, name };
