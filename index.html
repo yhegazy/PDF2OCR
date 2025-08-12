@@ -1,66 +1,50 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>PDF → Multi-page PNG</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-  <script src="convertPdfToPng.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
-    #status {
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <h1>PDF to PNG Converter</h1>
-  <input id="pdfInput" type="file" accept="application/pdf" aria-label="Select PDF file to convert" />
-  <div id="status">Select a PDF file to convert</div>
-  <div id="downloads"></div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PDF → PNG + OCR (Tesseract.js)</title>
 
-  <script>
-    const statusEl = document.getElementById('status');
-    const downloadsEl = document.getElementById('downloads');
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
-    document.getElementById('pdfInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5.3.1/dist/tesseract.min.js"></script>
 
-      statusEl.textContent = 'Reading file...';
-      downloadsEl.innerHTML = ''; // Clear previous downloads
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
 
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        statusEl.textContent = 'Converting PDF pages to PNG...';
+        #status {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
 
-        const pngBlobs = await convertPdfToPng(arrayBuffer, { scale: 1.5 });
+        .page-container {
+            margin-top: 1.5rem;
+            border-top: 1px solid #ccc;
+            padding-top: 1rem;
+        }
 
-        statusEl.textContent = `Conversion complete — ${pngBlobs.length} page(s) converted.`;
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            margin-bottom: 0.5rem;
+        }
 
-        pngBlobs.forEach((blob, i) => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${file.name.replace(/\.pdf$/i, '')}_page_${i + 1}.png`;
-          a.textContent = `Download page ${i + 1} PNG`;
-          a.style.display = 'block';
-          a.style.marginTop = '0.5rem';
+        pre {
+            background: #f8f8f8;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+    </style>
+  </head>
 
-          // Append to downloads div
-          downloadsEl.appendChild(a);
-        });
-
-      } catch (err) {
-        statusEl.textContent = 'Error: ' + (err.message || err);
-        console.error(err);
-      }
-    });
-  </script>
-</body>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
