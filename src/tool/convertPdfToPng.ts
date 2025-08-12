@@ -2,30 +2,19 @@ interface ConvertPdfToPngOptions {
   scale?: number;
 }
 
-declare global {
-  interface Window {
-    pdfjsLib?: typeof import('pdfjs-dist');
-  }
-}
-
-
 export default async function convertPdfToPng(
-  pdfData: ArrayBuffer | Uint8Array | Blob | string,
+  pdfData: ArrayBuffer | Uint8Array,
   options: ConvertPdfToPngOptions = {}
 ): Promise<Blob[]> {
   const { scale = 1.5 } = options;
 
-  // Get pdfjsLib from window or try to import it
-  const pdfjsLib = window.pdfjsLib;
+  // Check if pdfjsLib is available on window
+  const pdfjsLib = (window as any).pdfjsLib;
   if (!pdfjsLib) {
-    throw new Error('PDF.js library not loaded');
+    throw new Error('PDF.js library not loaded. Please include PDF.js in your project.');
   }
 
-  const getDocument = (pdfjsLib as any)['getDocument'] ?? (pdfjsLib as any).default?.getDocument;
-  if (!getDocument) {
-    throw new Error('PDF.js getDocument method not found');
-  }
-  const pdf = await getDocument(pdfData).promise;
+  const pdf = await pdfjsLib.getDocument(pdfData).promise;
   const pngBlobs: Blob[] = [];
 
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -43,7 +32,6 @@ export default async function convertPdfToPng(
 
     await page.render({ canvasContext: ctx, viewport }).promise;
 
-    // Convert canvas to PNG Blob with proper typing
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, 'image/png');
     });
@@ -53,11 +41,6 @@ export default async function convertPdfToPng(
     }
 
     pngBlobs.push(blob);
-
-    // Cleanup canvas memory
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.width = 0;
-    canvas.height = 0;
   }
 
   return pngBlobs;
